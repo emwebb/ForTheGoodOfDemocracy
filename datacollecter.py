@@ -3,6 +3,8 @@ import requests
 import json
 import urllib
 import numpy as np
+import re
+
 
 domain = "http://eldaddp.azurewebsites.net/"
 
@@ -25,14 +27,14 @@ def getPetitionSignituresPerConstituency(petition_id) :
     df = pandas.DataFrame(data=resultAsDict, columns=["Constituency","GssCode","Number of Signitures"])
     return df
 
-def getOralAndWrittenQuestions(requestAtATime = 500) :
+def getOralAndWrittenQuestions(requestAtATime,n,lim) :
     
     
     
     resultAsDict = []
-    n = 0
-    while True:
-        querry = urllib.parse.urlencode({"_pageSize" : requestAtATime, "_page" : 0 })
+
+    while n<lim:
+        querry = urllib.parse.urlencode({"_pageSize" : requestAtATime, "_page" : n })
         url = domain + "commonswrittenquestions.json?" + querry
         response = requests.get(url)
         dataAsDict = json.loads(response.content)
@@ -48,7 +50,6 @@ def getOralAndWrittenQuestions(requestAtATime = 500) :
     pd = pandas.DataFrame(data=resultAsDict, columns=["Question Text","MP Name","Date"])
     return pd
 
-print(getOralAndWrittenQuestions())
 
 
 CtrlZ = getPetitionSignituresPerConstituency(1059153)
@@ -69,12 +70,56 @@ SuperContender2['Percy'] = SuperContender2['Percy']*100
 LeaveEU2['Percy'] = np.divide(LeaveEU2['Number of Signitures'],LeaveEU2['Total electors 2017'])
 LeaveEU2['Percy'] = LeaveEU2['Percy']*100
 
-BOI = requests.get("http://lda.data.parliament.uk/commonswrittenquestions.json?_view=Written+Questions&_pageSize=10000&_page=0&_exists-[brexit]=[true]")
 
 #k = 3
 #CtrlZ_Flipped = CtrlZ.sort_values(by = ['Number of Signitures'])
 
 
 
+n=0
+#champs = getOralAndWrittenQuestions(500,0,50)
+
+#champs = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\questions.csv')
+#champs2 = champs[(champs['Date']>datetime.date(2018,8,1))]
+
+champs = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\questionsclip.csv')
+
+BrexitT = np.column_stack([champs['Question Text'].str.contains(r"\ Brexit", na=False) for col in champs])[:,1]
+BrexitT = pandas.DataFrame(BrexitT)
+brexitT = np.column_stack([champs['Question Text'].str.contains(r"\ brexit", na=False) for col in champs])[:,1]
+brexitT = pandas.DataFrame(brexitT)
+ref2 = np.column_stack([champs['Question Text'].str.contains(r"\ second referendum", na=False) for col in champs])[:,1]
+ref2 = pandas.DataFrame(ref2)
+A50 = np.column_stack([champs['Question Text'].str.contains(r"\ Article 50", na=False) for col in champs])[:,1]
+A50 = pandas.DataFrame(A50)
+leavingEU = np.column_stack([champs['Question Text'].str.contains(r"\ leaving the EU", na=False) for col in champs])[:,1]
+leavingEU = pandas.DataFrame(leavingEU)
+leavingEu = np.column_stack([champs['Question Text'].str.contains(r"\ leaving the Eu", na=False) for col in champs])[:,1]
+leavingEu = pandas.DataFrame(leavingEu)
+withdrawal = np.column_stack([champs['Question Text'].str.contains(r"\ withdrawal agreement", na=False) for col in champs])[:,1]
+withdrawal = pandas.DataFrame(withdrawal)
+leavesEU = np.column_stack([champs['Question Text'].str.contains(r"\ leaves the EU", na=False) for col in champs])[:,1]
+leavesEU = pandas.DataFrame(leavesEU)
+nodeal = np.column_stack([champs['Question Text'].str.contains(r"\ no deal", na=False) for col in champs])[:,1]
+nodeal = pandas.DataFrame(nodeal)
+left = np.column_stack([champs['Question Text'].str.contains(r"\ left the Eu", na=False) for col in champs])[:,1]
+left = pandas.DataFrame(left)
+negotiations = np.column_stack([champs['Question Text'].str.contains(r"\ negotiations with the EU", na=False) for col in champs])[:,1]
+negotiations = pandas.DataFrame(negotiations)
+
+Matchyboi = np.column_stack([champs['Question Text'].str.contains('brexit|second referendum|negotiations with the EU|left the Eu|no deal|leaves the EU|withdrawal agreement|leaving the Eu|Article 50', na=False, regex=True, flags=re.IGNORECASE) for col in champs])[:,1]
+Matchyboi = pandas.DataFrame(Matchyboi)
+
+champs2 = champs.assign(Word = Matchyboi)
 
 
+
+
+Matchyboi[0].value_counts()
+1786/(1786+22950)
+
+
+    
+
+helpme = champs.loc[nodeal]
+champs.to_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\Champs.csv',index=False)
