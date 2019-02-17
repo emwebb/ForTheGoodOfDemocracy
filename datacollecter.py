@@ -5,6 +5,8 @@ import urllib
 import numpy as np
 import re
 
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
 domain = "http://eldaddp.azurewebsites.net/"
 
@@ -25,8 +27,9 @@ def getPetitionSignituresPerConstituency(petition_id) :
         resultAsDict.append({"Constituency": constituency,"GssCode": gssCode, "Number of Signitures" : numOfSigs, "MP Name" : mpName})
 
     
-    df = pandas.DataFrame(data=resultAsDict, columns=["Constituency","GssCode","Number of Signitures"])
+    df = pandas.DataFrame(data=resultAsDict, columns=["Constituency","GssCode","Number of Signitures","MP Name"])
     return df
+
 
 def getOralAndWrittenQuestions(requestAtATime,n,lim) :
     
@@ -58,7 +61,7 @@ SuperContender = getPetitionSignituresPerConstituency(528705)
 LeaveEU = getPetitionSignituresPerConstituency(990119)
 
 pop = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\pop.csv')
-pop.rename(columns = {'Code':'GssCode'}, inplace = True)
+pop.rename(columns = {'Code':'GssCode_x'}, inplace = True)
 
 CtrlZ2 = pandas.merge(CtrlZ, pop, on = 'GssCode')
 SuperContender2 = pandas.merge(SuperContender, pop, on = 'GssCode')
@@ -110,17 +113,52 @@ negotiations = pandas.DataFrame(negotiations)
 
 Matchyboi = np.column_stack([champs['Question Text'].str.contains('brexit|second referendum|negotiations with the EU|left the Eu|no deal|leaves the EU|withdrawal agreement|leaving the Eu|Article 50', na=False, regex=True, flags=re.IGNORECASE) for col in champs])[:,1]
 Matchyboi = pandas.DataFrame(Matchyboi)
-
 champs2 = champs.assign(Word = Matchyboi)
+champs2['Word'].value_counts()
+MPCount = champs2[champs2['Word']==True]['MP Name'].value_counts()
+
+MPCount = pandas.DataFrame(MPCount)
 
 
+Sign = pandas.merge(CtrlZ, LeaveEU, on = 'Constituency')
 
+Sign['Numberino'] = Sign.sum(axis=1)
 
-Matchyboi[0].value_counts()
+pop = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\pop.csv')
+pop.rename(columns = {'Code':'GssCode_x'}, inplace = True)
+Sign2 = pandas.merge(Sign, pop, on = 'GssCode_x')
+Sign2['Percy'] = np.divide(Sign2['Numberino'],Sign2['Total electors 2017'])
+Sign2['Percy'] = Sign2['Percy']*100
+
+MPS = Sign2['MP Name_x'].unique()
+
+MPCount
+Sign3 = pandas.merge(MPCount, Sign2, left_index = True, right_on = 'MP Name_x')
+
+plt.scatter(Sign3['Percy'], Sign3['MP Name'])
+plt.title('Scatter plot One 3rd of the data')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.show()
+
+model = sm.OLS(Sign3['MP Name'], Sign3['Percy']).fit()
+predictions = model.predict(Sign3['Percy'])
+model.summary()
+
+X = Sign3["Percy"] ## X usually means our input variables (or independent variables)
+y = Sign3["MP Name"] ## Y usually means our output/dependent variable
+X = sm.add_constant(X) ## let's add an intercept (beta_0) to our model
+
+# Note the difference in argument order
+model = sm.OLS(y, X).fit() ## sm.OLS(output, input)
+predictions = model.predict(X)
+
+# Print out the statistics
+model.summary()
+ # make the predictions by the model
+
+Matchyboi[0].value_counts(by = 'MP Name')
 1786/(1786+22950)
 
 
     
-
-helpme = champs.loc[nodeal]
-champs.to_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\Champs.csv',index=False)
