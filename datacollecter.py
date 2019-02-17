@@ -2,6 +2,7 @@ import pandas
 import requests
 import json
 import urllib
+import numpy as np
 
 domain = "http://eldaddp.azurewebsites.net/"
 
@@ -48,3 +49,32 @@ def getOralAndWrittenQuestions(requestAtATime = 500) :
     return pd
 
 print(getOralAndWrittenQuestions())
+
+
+CtrlZ = getPetitionSignituresPerConstituency(1059153)
+SuperContender = getPetitionSignituresPerConstituency(528705)
+LeaveEU = getPetitionSignituresPerConstituency(990119)
+
+pop = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\pop.csv')
+pop.rename(columns = {'Code':'GssCode'}, inplace = True)
+
+CtrlZ2 = pandas.merge(CtrlZ, pop, on = 'GssCode')
+SuperContender2 = pandas.merge(SuperContender, pop, on = 'GssCode')
+LeaveEU2 = pandas.merge(LeaveEU, pop, on = 'GssCode')
+
+CtrlZ2['Percy'] = np.divide(CtrlZ2['Number of Signitures'],CtrlZ2['Total electors 2017'])
+CtrlZ2['Percy'] = CtrlZ2['Percy']*100
+SuperContender2['Percy'] = np.divide(SuperContender2['Number of Signitures'],SuperContender2['Total electors 2017'])
+SuperContender2['Percy'] = SuperContender2['Percy']*100
+LeaveEU2['Percy'] = np.divide(LeaveEU2['Number of Signitures'],LeaveEU2['Total electors 2017'])
+LeaveEU2['Percy'] = LeaveEU2['Percy']*100
+
+BOI = requests.get("http://lda.data.parliament.uk/commonswrittenquestions.json?_view=Written+Questions&_pageSize=10000&_page=0&_exists-[brexit]=[true]")
+
+#k = 3
+#CtrlZ_Flipped = CtrlZ.sort_values(by = ['Number of Signitures'])
+
+
+
+
+
