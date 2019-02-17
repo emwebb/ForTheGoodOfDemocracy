@@ -21,7 +21,8 @@ def getPetitionSignituresPerConstituency(petition_id) :
         constituency = numberOfSigsAsDict["result"]["primaryTopic"]["constituency"]["label"]["_value"]
         numOfSigs = numberOfSigsAsDict["result"]["primaryTopic"]["numberOfSignatures"]
         gssCode = numberOfSigsAsDict["result"]["primaryTopic"]["gssCode"]
-        resultAsDict.append({"Constituency": constituency,"GssCode": gssCode, "Number of Signitures" : numOfSigs})
+        mpName = numberOfSigsAsDict["result"]["primaryTopic"]["memberPrinted"]["_value"][:-3]
+        resultAsDict.append({"Constituency": constituency,"GssCode": gssCode, "Number of Signitures" : numOfSigs, "MP Name" : mpName})
 
     
     df = pandas.DataFrame(data=resultAsDict, columns=["Constituency","GssCode","Number of Signitures"])
