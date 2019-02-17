@@ -5,7 +5,6 @@ import urllib
 import numpy as np
 import re
 import fuzzywuzzy.process as fwp
-
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 
@@ -134,16 +133,16 @@ Sign2['Percy'] = np.divide(Sign2['Numberino'],Sign2['Total electors 2017'])
 Sign2['Percy'] = Sign2['Percy']*100
 
 MPS = Sign2['MP Name_x'].unique()
-
-MPNames = list(MPS.index.values)
+mpNames = MPCount.index
 def fmatch(row): 
     minscore=60 #or whatever score works for you
-    choice,score = fwp.extractOne(row['MP Names_x'],MPNames)
+    choice,score = fwp.extractOne(row['MP Name_x'],mpNames)
     return choice if score > minscore else None
 
 Sign2["MP Name_y"] = Sign2.apply(fmatch,axis=1)
 MPCount
 Sign3 = pandas.merge(MPCount, Sign2, left_index = True, right_on = 'MP Name_y')
+
 
 plt.scatter(Sign3['Percy'], Sign3['MP Name'])
 plt.title('Scatter plot One 3rd of the data')
@@ -151,12 +150,9 @@ plt.xlabel('x')
 plt.ylabel('y')
 plt.show()
 
-model = sm.OLS(Sign3['MP Name'], Sign3['Percy']).fit()
-predictions = model.predict(Sign3['Percy'])
-model.summary()
-
 X = Sign3["Percy"] ## X usually means our input variables (or independent variables)
 y = Sign3["MP Name"] ## Y usually means our output/dependent variable
+
 X = sm.add_constant(X) ## let's add an intercept (beta_0) to our model
 
 # Note the difference in argument order
@@ -166,6 +162,36 @@ predictions = model.predict(X)
 # Print out the statistics
 model.summary()
  # make the predictions by the model
+
+#Actually Normalised 
+normy = np.sum(Sign3["MP Name"])/len(Sign3["MP Name"])
+Sign3['norm MP Name'] =  Sign3["MP Name"]/normy
+
+
+plt.scatter(Sign3['Total electors 2017'], Sign3['norm MP Name'])
+plt.title('Scatter plot One 3rd of the data')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.show()
+
+
+X = Sign3["Total electors 2017"] ## X usually means our input variables (or independent variables)
+y = Sign3["norm MP Name"] ## Y usually means our output/dependent variable
+
+X = sm.add_constant(X) ## let's add an intercept (beta_0) to our model
+
+# Note the difference in argument order
+model = sm.OLS(y, X).fit() ## sm.OLS(output, input)
+predictions = model.predict(X)
+
+# Print out the statistics
+model.summary()
+
+
+
+
+
+
 
 Matchyboi[0].value_counts(by = 'MP Name')
 1786/(1786+22950)
