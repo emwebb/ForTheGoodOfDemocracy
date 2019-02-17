@@ -1,6 +1,7 @@
 import pandas
 import requests
 import json
+import urllib
 
 domain = "http://eldaddp.azurewebsites.net/"
 
@@ -22,3 +23,28 @@ def getPetitionSignituresPerConstituency(petition_id) :
     
     df = pandas.DataFrame(data=resultAsDict, columns=["Constituency","GssCode","Number of Signitures"])
     return df
+
+def getOralAndWrittenQuestions(requestAtATime = 500) :
+    
+    
+    
+    resultAsDict = []
+    n = 0
+    while True:
+        querry = urllib.parse.urlencode({"_pageSize" : requestAtATime, "_page" : 0 })
+        url = domain + "commonswrittenquestions.json?" + querry
+        response = requests.get(url)
+        dataAsDict = json.loads(response.content)
+        for question in dataAsDict['result']['items'] :
+            questionText = question['questionText']
+            mpName = question['tablingMemberPrinted'][0]['_value']
+            date = question['dateTabled']['_value']
+            resultAsDict.append({"Question Text":questionText,"MP Name":mpName,"Date":date})
+        if (n + 1) * requestAtATime > dataAsDict['result']['totalResults']:
+            break
+        n = n + 1
+
+    pd = pandas.DataFrame(data=resultAsDict, columns=["Question Text","MP Name","Date"])
+    return pd
+
+print(getOralAndWrittenQuestions())
