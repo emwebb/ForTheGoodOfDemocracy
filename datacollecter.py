@@ -4,6 +4,7 @@ import json
 import urllib
 import numpy as np
 import re
+import fuzzywuzzy.process as fwp
 
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
@@ -126,14 +127,23 @@ Sign['Numberino'] = Sign.sum(axis=1)
 
 pop = pandas.read_csv('C:\\Users\dvder\Desktop\ThePeopleVoted\pop.csv')
 pop.rename(columns = {'Code':'GssCode_x'}, inplace = True)
+
+
 Sign2 = pandas.merge(Sign, pop, on = 'GssCode_x')
 Sign2['Percy'] = np.divide(Sign2['Numberino'],Sign2['Total electors 2017'])
 Sign2['Percy'] = Sign2['Percy']*100
 
 MPS = Sign2['MP Name_x'].unique()
 
+MPNames = list(MPS.index.values)
+def fmatch(row): 
+    minscore=60 #or whatever score works for you
+    choice,score = fwp.extractOne(row['MP Names_x'],MPNames)
+    return choice if score > minscore else None
+
+Sign2["MP Name_y"] = Sign2.apply(fmatch,axis=1)
 MPCount
-Sign3 = pandas.merge(MPCount, Sign2, left_index = True, right_on = 'MP Name_x')
+Sign3 = pandas.merge(MPCount, Sign2, left_index = True, right_on = 'MP Name_y')
 
 plt.scatter(Sign3['Percy'], Sign3['MP Name'])
 plt.title('Scatter plot One 3rd of the data')
